@@ -1,5 +1,7 @@
 const userRouter = require('./userRouter');
+const bannerRouter = require('./bannerRouter');
 
 module.exports={
-    userRouter
+    userRouter,
+    bannerRouter
 }

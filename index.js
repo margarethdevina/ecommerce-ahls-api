@@ -21,7 +21,8 @@ app.get('/',(req,res)=>{
     res.status(200).send("<h1>JCAHLS Ecommerce API</h1>")
 })
 
-const {userRouter} = require('./routers');
+const {userRouter, bannerRouter} = require('./routers');
 app.use('/users', userRouter);
+app.use('/banner', bannerRouter);
 
 app.listen(PORT,()=>console.log(`Running API at PORT ${PORT}`));
