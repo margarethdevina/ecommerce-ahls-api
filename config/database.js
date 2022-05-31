@@ -1,4 +1,7 @@
 const mysql = require('mysql');
+const util = require('util'); //libary next js untuk manage api, ubah asyn function yg tdk punya promise mjd ada promise nya
+//promise ada then catch yg menjalankan asyn function seperti axios
+//dbconf ga punya promise then catch makannya butuh util untuk bisa async await dan try catch
 
 const dbConf = mysql.createPool({
     host: process.env.DB_HOST,
@@ -8,6 +11,6 @@ const dbConf = mysql.createPool({
     port: process.env.DB_PORT
 })
 
-module.exports = {
-    dbConf
-}
+const dbQuery = util.promisify(dbConf.query).bind(dbConf);
+
+module.exports = {dbConf,dbQuery};
