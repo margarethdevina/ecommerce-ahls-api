@@ -66,7 +66,7 @@ module.exports = {
             // console.log(req.body)
             let resultsLogin = await dbQuery(`Select id, username, email, role FROM users where email="${req.body.email}" and password="${req.body.password}";`)
 
-            if(resultsLogin.length == 1){
+            if (resultsLogin.length == 1) {
                 let resultsCart = await dbQuery(`select p.nama, i.image, p.harga, s.type, s.qty as stockQty, c.* from cart c 
                 JOIN stocks s on c.idstock = s.idstock 
                 JOIN products p on s.idproducts = p.id 
@@ -79,8 +79,8 @@ module.exports = {
                 return res.status(200).send(resultsLogin[0]);
             } else {
                 return res.status(404).send({
-                    success:false,
-                    message:"user not found"
+                    success: false,
+                    message: "user not found"
                 });
             }
 
@@ -120,5 +120,31 @@ module.exports = {
     },
     deActiveAccount: (req, res, next) => {
 
+    },
+    keeplogin: async (req, res, next) => {
+        try {
+            let resultsLogin = await dbQuery(`Select id, username, email, role FROM users 
+            where id="${req.body.id}";`)
+
+            if (resultsLogin.length == 1) {
+                let resultsCart = await dbQuery(`select p.nama, i.image, p.harga, s.type, s.qty as stockQty, c.* from cart c 
+                JOIN stocks s on c.idstock = s.idstock 
+                JOIN products p on s.idproducts = p.id 
+                JOIN image i on p.id = i.idProduct 
+                where c.iduser = ${resultsLogin[0].id} 
+                group by c.idcart ;`)
+
+                resultsLogin[0].cart = resultsCart;
+                
+                return res.status(200).send(resultsLogin[0]);
+            } else {
+                return res.status(404).send({
+                    success: false,
+                    message: "user not found"
+                });
+            }
+        } catch (error) {
+            return next(error);
+        }
     }
 }
