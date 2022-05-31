@@ -1,18 +1,53 @@
 const { dbConf } = require("../config/database")
 
 module.exports = {
-    getData: (req, res) => {
+    getData: (req, res, next) => {
         dbConf.query('Select id, username, email, role FROM users;', (error, resultsUser) => {
             if (error) {
                 console.log(error);
-                res.status(500).send(error);
+                return next(error);
             }
 
-            // res.status(200).send(resultsUser);
             dbConf.query('Select * FROM cart;', (errorCart, resultsCart) => {
                 if (errorCart) {
-                    console.log(errorCart);
-                    res.status(500).send(errorCart);
+                    return next(errorCart);
+                }
+
+                // console.log(resultsUser);
+                // console.log(resultsCart);
+
+                resultsUser.forEach((val, idx) => {
+                    val.cart = [];
+                    resultsCart.forEach((valCart, idxCart) => {
+                        if (val.id == valCart.iduser) {
+                            val.cart.push(valCart)
+                        }
+                    })
+                })
+
+                return res.status(200).send(resultsUser);
+
+            })
+        })
+
+
+    },
+    register: (req, res, next) => {
+        res.status(200).send("<h2>REGISTER</h2>")
+
+    },
+    login: (req, res, next) => {
+
+        dbConf.query(`Select id, username, email, role FROM users where email="${req.body.email}" and password="${req.body.password}";`, (error, resultsUser) => {
+            console.log(req.body)
+            if (error) {
+                console.log(error);
+                return next(error);
+            }
+
+            dbConf.query('Select * FROM cart;', (errorCart, resultsCart) => {
+                if (errorCart) {
+                    return next(errorCart);
                 }
 
                 console.log(resultsUser);
@@ -27,24 +62,16 @@ module.exports = {
                     })
                 })
 
-                res.status(200).send(resultsUser);
+                return res.status(200).send(resultsUser);
 
             })
+
         })
-
-
     },
-    register: (req, res) => {
-        res.status(200).send("<h2>REGISTER</h2>")
+    edit: (req, res, next) => {
 
     },
-    login: (req, res) => {
-        res.status(200).send("<h2>LOGIN</h2>")
-    },
-    edit: (req, res) => {
-
-    },
-    deActiveAccount: (req, res) => {
+    deActiveAccount: (req, res, next) => {
 
     }
 }
