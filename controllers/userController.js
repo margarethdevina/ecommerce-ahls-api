@@ -12,9 +12,7 @@ module.exports = {
             group by c.idcart;`)
 
             // let resJoinCartStocksProductsImage = await dbQuery('select c.idcart, c.iduser, c.idstock, c.qty, c.subTotal, s.idstock, s.idproducts, s.type, s.qty as stockQty, p.nama, p.harga, i.image from cart c JOIN stocks s on c.idstock = s.idstock JOIN products p JOIN image i on s.idproducts = p.id = i.idProduct;')
-
-            // console.log("isi join cart stocks products", resJoinCartStocksProductsImage)
-
+           
             resultsUsers.forEach((val, idx) => {
                 val.cart = [];
                 resultsCart.forEach((valCart, idxCart) => {
@@ -57,8 +55,34 @@ module.exports = {
 
 
     },
-    register: (req, res, next) => {
-        res.status(200).send("<h2>REGISTER</h2>")
+    register: async (req, res, next) => {
+        try {
+            // console.log("isi body", req.body)
+
+            await dbQuery(`INSERT INTO users 
+            (username, email, password, role) 
+            VALUES 
+            ("${req.body.username}", "${req.body.email}", "${req.body.password}", "user");`)
+
+            let resultsLogin = await dbQuery(`Select id, username, email, role FROM users where email="${req.body.email}" and password="${req.body.password}";`)
+
+            if (resultsLogin.length == 1) {
+                let resultsCart = await dbQuery(`select p.nama, i.image, p.harga, s.type, s.qty as stockQty, c.* from cart c 
+                JOIN stocks s on c.idstock = s.idstock 
+                JOIN products p on s.idproducts = p.id 
+                JOIN image i on p.id = i.idProduct 
+                where c.iduser = ${resultsLogin[0].id} 
+                group by c.idcart ;`)
+
+                resultsLogin[0].cart = resultsCart;
+
+                return res.status(200).send(resultsLogin[0]);
+
+            }
+
+        } catch (error) {
+            return next(error);
+        }
 
     },
     login: async (req, res, next) => {
@@ -135,7 +159,7 @@ module.exports = {
                 group by c.idcart ;`)
 
                 resultsLogin[0].cart = resultsCart;
-                
+
                 return res.status(200).send(resultsLogin[0]);
             } else {
                 return res.status(404).send({

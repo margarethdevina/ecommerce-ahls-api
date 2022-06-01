@@ -23,9 +23,10 @@ app.get('/', (req, res) => {
     res.status(200).send("<h1>JCAHLS Ecommerce API</h1>")
 })
 
-const { userRouter, bannerRouter } = require('./routers');
+const { userRouter, bannerRouter, productsRouter } = require('./routers');
 app.use('/users', userRouter);
 app.use('/banner', bannerRouter);
+app.use('/products', productsRouter);
 
 // Handling error
 // Middleware untuk urus error scr global
