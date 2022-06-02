@@ -6,6 +6,7 @@ module.exports = {
             let resultsProducts = await dbQuery(`select * from products;`)
 
             let resultsStocks = await dbQuery(`select idstock as id, idproducts, type, qty from stocks;`)
+            console.log("resultsStocks",resultsStocks)
 
             let resultsImage = await dbQuery(`select idProduct, image from image;`)
 
@@ -68,6 +69,48 @@ module.exports = {
     },
     add: async (req, res, next) => {
         try {
+            // console.log("isi req.body", req.body.stock[0].type)
+
+            await dbQuery(`INSERT INTO products 
+            (nama, deskripsi, brand, kategori, harga) 
+            VALUES 
+            ("${req.body.nama}", "${req.body.deskripsi}", "${req.body.brand}", "${req.body.kategori}", ${req.body.harga});`)
+
+            let resultsProducts = await dbQuery(`select * from products order by id desc limit 0,1;`)
+            console.log("isi resultsProducts", resultsProducts)
+            console.log("id product terbaru",resultsProducts[0].id)
+
+            await req.body.stock.forEach((valStockBody, idxStockBody) => {
+                dbQuery(`INSERT INTO stocks 
+                        (idproducts, type, qty) 
+                        VALUES 
+                        (${resultsProducts[0].id}, "${valStockBody.type}", ${valStockBody.qty});`)
+            });
+
+            await req.body.images.forEach((valImageBody, idxImageBody) => {
+                dbQuery(`INSERT INTO image 
+                        (idProduct, image) 
+                        VALUES 
+                        (${resultsProducts[0].id}, "${valImageBody}");`)
+            });
+
+            let resultsStocks = await dbQuery(`select idstock as id, type, qty from stocks where idproducts=${resultsProducts[0].id};`);
+            console.log("isi resultsStocks", resultsStocks);
+
+            let resultsImage = await dbQuery(`select idimage, image from image where idProduct=${resultsProducts[0].id};`);
+            console.log("isi resultsImage", resultsImage);
+
+            resultsProducts[0].stock = [];
+            resultsStocks.forEach((valStock,idxStock)=>{
+                resultsProducts[0].stock.push(valStock)
+            })
+
+            resultsProducts[0].images = [];
+            resultsImage.forEach((valImage,idxImage)=>{
+                resultsProducts[0].images.push(valImage)
+            })
+
+            return res.status(200).send(resultsProducts[0]);
 
         } catch (error) {
             return next(error);
@@ -167,7 +210,7 @@ module.exports = {
             console.log("isi req query", req.query)
             let resultsProducts = await dbQuery(`select * from products limit ${parseInt(req.query._page * req.query._limit)},${parseInt(req.query._limit)};`)
 
-            if (resultsProducts.length>0) {
+            if (resultsProducts.length > 0) {
                 let resultsStocks = await dbQuery(`select idstock as id, idproducts, type, qty from stocks;`)
 
                 let resultsImage = await dbQuery(`select idProduct, image from image;`)

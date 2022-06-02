@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv'); // menyimpan value kedalam environment variabel.
+const mongoose = require('mongoose'); //insert library mongoose
+const { mongoAccessURL } = require('./config/mongo');//panggil mongoAccessURL nya
 dotenv.config(); //untuk aktifkan dotenv nya
 
 const PORT = process.env.PORT; // tadi simpan portnya dalam PORT jadi panggil pakai .PORT
@@ -19,6 +21,12 @@ dbConf.getConnection((error, connection) => {
     console.log(`Connected to MySQL Server ✅: ${connection.threadId}`)
 })
 
+// Mongo check connection ❗❗❗❗
+mongoose.connect(mongoAccessURL,()=>{
+    console.log("Connect Mongo Success ✅");
+})
+
+/////////////////////////////////////////
 app.get('/', (req, res) => {
     res.status(200).send("<h1>JCAHLS Ecommerce API</h1>")
 })
