@@ -6,7 +6,7 @@ module.exports = {
             let resultsProducts = await dbQuery(`select * from products;`)
 
             let resultsStocks = await dbQuery(`select idstock as id, idproducts, type, qty from stocks;`)
-            console.log("resultsStocks",resultsStocks)
+            console.log("resultsStocks", resultsStocks)
 
             let resultsImage = await dbQuery(`select idProduct, image from image;`)
 
@@ -68,47 +68,113 @@ module.exports = {
         }
     },
     add: async (req, res, next) => {
+
+        //q.AddProduct
+        queryPromise1 = () => {
+            return new Promise((resolve, reject) => {
+                dbQuery(`INSERT INTO products 
+                (nama, deskripsi, brand, kategori, harga) 
+                VALUES 
+                ("${req.body.nama}", "${req.body.deskripsi}", "${req.body.brand}", "${req.body.kategori}", ${req.body.harga});`, (error, results) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    return resolve(results);
+                });
+            });
+        };
+
+        //q.GetProduct
+        queryPromise2 = () => {
+            return new Promise((resolve, reject) => {
+                dbQuery(`select * from products order by id desc limit 0,1;`, (error, results) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    return resolve(results);
+                })
+            })
+        }
+
+        //q.AddStocks
+        queryPromise3 = (productId) => {
+            return new Promise((resolve, reject) => {
+                req.body.stock.forEach((valStockBody, idxStockBody) => {
+                    dbQuery(`INSERT INTO stocks 
+                            (idproducts, type, qty) 
+                            VALUES 
+                            (${productId}, "${valStockBody.type}", ${valStockBody.qty});`, (error, results) => {
+                        if (error) {
+                            return reject(error);
+                        }
+                        return resolve(results);
+                    });
+                });
+            });
+        };
+
+        //q.AddImage
+        queryPromise4 = (productId) => {
+            return new Promise((resolve, reject) => {
+                req.body.images.forEach((valImageBody, idxImageBody) => {
+                    dbQuery(`INSERT INTO image 
+                            (idProduct, image) 
+                            VALUES 
+                            (${productId}, "${valImageBody}");`, (error, results) => {
+                        if (error) {
+                            return reject(error);
+                        }
+                        return resolve(results);
+                    });
+                });
+            });
+        };
+
+        //q.GetStocks
+        queryPromise5 = (productId) => {
+            return new Promise((resolve, reject) => {
+                dbQuery(`select idstock as id, type, qty from stocks where idproducts = ${productId};`, (error, results) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    return resolve(results);
+                })
+            })
+        }
+
+        //q.GetImages
+        queryPromise6 = (productId) => {
+            return new Promise((resolve, reject) => {
+                dbQuery(`select idProduct, image from image where idProduct=${productId};`, (error, results) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    // setTimeout(()=>resolve(results),1000);
+                    return resolve(results);
+                })
+            })
+        }
+
         try {
-            // console.log("isi req.body", req.body.stock[0].type)
+            let addProduct = await queryPromise1();
+            let resultsProducts = await queryPromise2();
+            let addStocks = await queryPromise3(resultsProducts[0].id);
+            let addImages = await queryPromise4(resultsProducts[0].id);
+            let resultsStocks = await queryPromise5(resultsProducts[0].id);
+            let resultsImage = await queryPromise6(resultsProducts[0].id);
 
-            await dbQuery(`INSERT INTO products 
-            (nama, deskripsi, brand, kategori, harga) 
-            VALUES 
-            ("${req.body.nama}", "${req.body.deskripsi}", "${req.body.brand}", "${req.body.kategori}", ${req.body.harga});`)
+            console.log(resultsImage)
 
-            let resultsProducts = await dbQuery(`select * from products order by id desc limit 0,1;`)
-            console.log("isi resultsProducts", resultsProducts)
-            console.log("id product terbaru",resultsProducts[0].id)
+            resultsProducts[0].stock = [...resultsStocks];
 
-            await req.body.stock.forEach((valStockBody, idxStockBody) => {
-                dbQuery(`INSERT INTO stocks 
-                        (idproducts, type, qty) 
-                        VALUES 
-                        (${resultsProducts[0].id}, "${valStockBody.type}", ${valStockBody.qty});`)
+            resultsProducts.forEach((valProd, idxProd) => {
+                valProd.images = [];
+                resultsImage.forEach((valImg, idxImg) => {
+                    if (valProd.id == valImg.idProduct) {
+                        valProd.images.push(valImg.image);
+                    }
+                });
             });
-
-            await req.body.images.forEach((valImageBody, idxImageBody) => {
-                dbQuery(`INSERT INTO image 
-                        (idProduct, image) 
-                        VALUES 
-                        (${resultsProducts[0].id}, "${valImageBody}");`)
-            });
-
-            let resultsStocks = await dbQuery(`select idstock as id, type, qty from stocks where idproducts=${resultsProducts[0].id};`);
-            console.log("isi resultsStocks", resultsStocks);
-
-            let resultsImage = await dbQuery(`select idimage, image from image where idProduct=${resultsProducts[0].id};`);
-            console.log("isi resultsImage", resultsImage);
-
-            resultsProducts[0].stock = [];
-            resultsStocks.forEach((valStock,idxStock)=>{
-                resultsProducts[0].stock.push(valStock)
-            })
-
-            resultsProducts[0].images = [];
-            resultsImage.forEach((valImage,idxImage)=>{
-                resultsProducts[0].images.push(valImage)
-            })
 
             return res.status(200).send(resultsProducts[0]);
 

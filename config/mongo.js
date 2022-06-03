@@ -8,6 +8,9 @@ const mongoAccessURL = `mongodb://al:1234@localhost:27017/commerce-ah`;
 const bannerSchema = mongoose.Schema({
     src: String
 });
+//kalau isinya angka diisi tipe number
+// boolean diisi boolean
+// array diisi array
 
 //4.Setup collection
 const mongoBanner = mongoose.model("bannerCollection", bannerSchema, "banner");

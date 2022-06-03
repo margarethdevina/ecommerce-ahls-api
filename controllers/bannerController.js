@@ -46,12 +46,21 @@ module.exports = {
             return next(error);
         }
     },
-    update: (req, res, next) => {
-        res.status(200).send("<h2>update</h2>")
+    update: async (req, res, next) => {
+        try {
+            mongoBanner.updateOne(req.query, { $set: req.body }, {}, (err, results) => {
+                res.status(200).send({
+                    success: true,
+                    results
+                })
+            })
+        } catch (error) {
+            return next(error);
+        }
     },
     deleteData: async (req, res, next) => {
         try {
-            mongoBanner.remove(req.query, (err, data) => {
+            mongoBanner.deleteOne(req.query, (err, data) => {
                 res.status(200).send({
                     success: true,
                     results: data
