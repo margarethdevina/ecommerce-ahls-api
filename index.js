@@ -9,8 +9,8 @@ dotenv.config(); //untuk aktifkan dotenv nya
 const PORT = process.env.PORT; // tadi simpan portnya dalam PORT jadi panggil pakai .PORT
 
 app.use(express.json()); // untuk membaca data req.body di express.js
-
-app.use(cors());
+app.use(express.static('public')); //untuk kasi akses untuk bisa akses langsung direktori public nya
+app.use(cors()); // cek rekaman untuk refresh
 
 // DB check connection
 const { dbConf } = require('./config/database');

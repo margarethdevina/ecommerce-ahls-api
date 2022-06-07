@@ -14,3 +14,6 @@ const dbConf = mysql.createPool({
 const dbQuery = util.promisify(dbConf.query).bind(dbConf);
 
 module.exports = {dbConf,dbQuery};
+
+//port default bawaan platform lain: 3306 mysql, 270017 mongo, 2180 2108 proxy, 22 ssh, 443 https connection / protocol htps bisa dipake tapi perlu konfigurasi lanjutan, 8080, 60
+//port2 itu jangan dipakai untuk koneksi database localhost kita 
