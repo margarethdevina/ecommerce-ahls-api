@@ -4,9 +4,12 @@ const cors = require('cors');
 const dotenv = require('dotenv'); // menyimpan value kedalam environment variabel.
 const mongoose = require('mongoose'); //insert library mongoose
 const { mongoAccessURL } = require('./config/mongo');//panggil mongoAccessURL nya
+const bearerToken = require('express-bearer-token');
 dotenv.config(); //untuk aktifkan dotenv nya
 
 const PORT = process.env.PORT; // tadi simpan portnya dalam PORT jadi panggil pakai .PORT
+
+app.use(bearerToken()); // untuk mengambil data token dari req.header
 
 app.use(express.json()); // untuk membaca data req.body di express.js
 app.use(express.static('public')); //untuk kasi akses untuk bisa akses langsung direktori public nya

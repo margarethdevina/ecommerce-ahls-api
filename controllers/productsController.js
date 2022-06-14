@@ -9,7 +9,7 @@ module.exports = {
             let resultsProducts = await dbQuery(`select * from products;`)
 
             let resultsStocks = await dbQuery(`select idstock as id, idproducts, type, qty from stocks;`)
-            console.log("resultsStocks", resultsStocks)
+            // console.log("resultsStocks", resultsStocks)
 
             let resultsImage = await dbQuery(`select idProduct, image from image;`)
 
@@ -70,171 +70,178 @@ module.exports = {
     },
     add: async (req, res, next) => {
 
-        const uploadFile = uploader('/imgProduct', 'IMGPRO').array('images', 5);//array('properti FE',maxJumlahGambarYgBisaDiuplod)
-        //di FE untuk melimit mending dikasih remarks/alert/toast untuk info cuma bisa 5 gambar aja yg diuplod.
+        if (req.dataUser.role == "admin") {
 
-        uploadFile(req, res, async (error) => { //req mengolah data dr FE langsung jd data yg masuk ini ga dlm bentuk objek tp dlm bentuk form data
-            try {
+            const uploadFile = uploader('/imgProduct', 'IMGPRO').array('images', 5);//array('properti FE',maxJumlahGambarYgBisaDiuplod)
+            //di FE untuk melimit mending dikasih remarks/alert/toast untuk info cuma bisa 5 gambar aja yg diuplod.
 
-                console.log(req.body);
-                console.log("pengecekan file: ", req.files);
+            uploadFile(req, res, async (error) => { //req mengolah data dr FE langsung jd data yg masuk ini ga dlm bentuk objek tp dlm bentuk form data
+                try {
 
-                let { nama, deskripsi, brand, kategori, harga, stock } = JSON.parse(req.body.data);
+                    console.log(req.body);
+                    console.log("pengecekan file: ", req.files);
 
-                let insertProduct = await dbQuery(`INSERT INTO products 
-                (nama, deskripsi, brand, kategori, harga) 
-                VALUES 
-                (${dbConf.escape(nama)}, ${dbConf.escape(deskripsi)}, ${dbConf.escape(brand)}, ${dbConf.escape(kategori)}, ${dbConf.escape(harga)});`);
+                    let { nama, deskripsi, brand, kategori, harga, stock } = JSON.parse(req.body.data);
 
-                if (insertProduct.insertId) {
-                    //add images
-                    let imageData = req.files.map(val => {
-                        return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(`/imgProduct/${val.filename}`)})`
-                    })
-                    // let imageData = images.map(val => {
-                    //     return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(val)})`
-                    // })
-
-                    let insertImg = await dbQuery(`INSERT INTO image (idProduct, image)
+                    let insertProduct = await dbQuery(`INSERT INTO products 
+                    (nama, deskripsi, brand, kategori, harga) 
                     VALUES 
-                    ${imageData.join(',')};`)
+                    (${dbConf.escape(nama)}, ${dbConf.escape(deskripsi)}, ${dbConf.escape(brand)}, ${dbConf.escape(kategori)}, ${dbConf.escape(harga)});`);
 
-                    //add stocks
-                    let stocksData = stock.map(val => {
-                        return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(val.type)},${dbConf.escape(val.qty)})`
-                    })
+                    if (insertProduct.insertId) {
+                        //add images
+                        let imageData = req.files.map(val => {
+                            return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(`/imgProduct/${val.filename}`)})`
+                        })
+                        // let imageData = images.map(val => {
+                        //     return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(val)})`
+                        // })
 
-                    let insertStocks = await dbQuery(`INSERT INTO stocks 
-                    (idproducts, type, qty) 
-                    VALUES 
-                    ${stocksData.join(',')};`)
-                    return res.status(200).send({
-                        success: true,
-                        message: "Add product success"
-                    })
+                        let insertImg = await dbQuery(`INSERT INTO image (idProduct, image)
+                        VALUES 
+                        ${imageData.join(',')};`)
+
+                        //add stocks
+                        let stocksData = stock.map(val => {
+                            return `(${dbConf.escape(insertProduct.insertId)},${dbConf.escape(val.type)},${dbConf.escape(val.qty)})`
+                        })
+
+                        let insertStocks = await dbQuery(`INSERT INTO stocks 
+                        (idproducts, type, qty) 
+                        VALUES 
+                        ${stocksData.join(',')};`)
+                        return res.status(200).send({
+                            success: true,
+                            message: "Add product success"
+                        })
+                    }
+
+                } catch (error) {
+                    req.files.forEach(val => fs.unlinkSync(`./public/imgProduct/${val.filename}`));
+                    return next(error);
                 }
 
-            } catch (error) {
-                req.files.forEach(val => fs.unlinkSync(`./public/imgProduct/${val.filename}`));
-                return next(error);
-            }
+            })
 
-        })
+            ///////////////////////////////////////////
 
-        ///////////////////////////////////////////
+            // //q.AddProduct
+            // queryPromise1 = () => {
+            //     return new Promise((resolve, reject) => {
+            //         dbQuery(`INSERT INTO products 
+            //         (nama, deskripsi, brand, kategori, harga) 
+            //         VALUES 
+            //         ("${req.body.nama}", "${req.body.deskripsi}", "${req.body.brand}", "${req.body.kategori}", ${req.body.harga});`, (error, results) => {
+            //             if (error) {
+            //                 return reject(error);
+            //             }
+            //             return resolve(results);
+            //         });
+            //     });
+            // };
 
-        // //q.AddProduct
-        // queryPromise1 = () => {
-        //     return new Promise((resolve, reject) => {
-        //         dbQuery(`INSERT INTO products 
-        //         (nama, deskripsi, brand, kategori, harga) 
-        //         VALUES 
-        //         ("${req.body.nama}", "${req.body.deskripsi}", "${req.body.brand}", "${req.body.kategori}", ${req.body.harga});`, (error, results) => {
-        //             if (error) {
-        //                 return reject(error);
-        //             }
-        //             return resolve(results);
-        //         });
-        //     });
-        // };
+            // //q.GetProduct
+            // queryPromise2 = () => {
+            //     return new Promise((resolve, reject) => {
+            //         dbQuery(`select * from products order by id desc limit 0,1;`, (error, results) => {
+            //             if (error) {
+            //                 return reject(error);
+            //             }
+            //             return resolve(results);
+            //         })
+            //     })
+            // }
 
-        // //q.GetProduct
-        // queryPromise2 = () => {
-        //     return new Promise((resolve, reject) => {
-        //         dbQuery(`select * from products order by id desc limit 0,1;`, (error, results) => {
-        //             if (error) {
-        //                 return reject(error);
-        //             }
-        //             return resolve(results);
-        //         })
-        //     })
-        // }
+            // //q.AddStocks
+            // queryPromise3 = (productId) => {
+            //     return new Promise((resolve, reject) => {
+            //         req.body.stock.forEach((valStockBody, idxStockBody) => {
+            //             dbQuery(`INSERT INTO stocks 
+            //                     (idproducts, type, qty) 
+            //                     VALUES 
+            //                     (${productId}, "${valStockBody.type}", ${valStockBody.qty});`, (error, results) => {
+            //                 if (error) {
+            //                     return reject(error);
+            //                 }
+            //                 return resolve(results);
+            //             });
+            //         });
+            //     });
+            // };
 
-        // //q.AddStocks
-        // queryPromise3 = (productId) => {
-        //     return new Promise((resolve, reject) => {
-        //         req.body.stock.forEach((valStockBody, idxStockBody) => {
-        //             dbQuery(`INSERT INTO stocks 
-        //                     (idproducts, type, qty) 
-        //                     VALUES 
-        //                     (${productId}, "${valStockBody.type}", ${valStockBody.qty});`, (error, results) => {
-        //                 if (error) {
-        //                     return reject(error);
-        //                 }
-        //                 return resolve(results);
-        //             });
-        //         });
-        //     });
-        // };
+            // //q.AddImage
+            // queryPromise4 = (productId) => {
+            //     return new Promise((resolve, reject) => {
+            //         req.body.images.forEach((valImageBody, idxImageBody) => {
+            //             dbQuery(`INSERT INTO image 
+            //                     (idProduct, image) 
+            //                     VALUES 
+            //                     (${productId}, "${valImageBody}");`, (error, results) => {
+            //                 if (error) {
+            //                     return reject(error);
+            //                 }
+            //                 return resolve(results);
+            //             });
+            //         });
+            //     });
+            // };
 
-        // //q.AddImage
-        // queryPromise4 = (productId) => {
-        //     return new Promise((resolve, reject) => {
-        //         req.body.images.forEach((valImageBody, idxImageBody) => {
-        //             dbQuery(`INSERT INTO image 
-        //                     (idProduct, image) 
-        //                     VALUES 
-        //                     (${productId}, "${valImageBody}");`, (error, results) => {
-        //                 if (error) {
-        //                     return reject(error);
-        //                 }
-        //                 return resolve(results);
-        //             });
-        //         });
-        //     });
-        // };
+            // //q.GetStocks
+            // queryPromise5 = (productId) => {
+            //     return new Promise((resolve, reject) => {
+            //         dbQuery(`select idstock as id, type, qty from stocks where idproducts = ${productId};`, (error, results) => {
+            //             if (error) {
+            //                 return reject(error);
+            //             }
+            //             return resolve(results);
+            //         })
+            //     })
+            // }
 
-        // //q.GetStocks
-        // queryPromise5 = (productId) => {
-        //     return new Promise((resolve, reject) => {
-        //         dbQuery(`select idstock as id, type, qty from stocks where idproducts = ${productId};`, (error, results) => {
-        //             if (error) {
-        //                 return reject(error);
-        //             }
-        //             return resolve(results);
-        //         })
-        //     })
-        // }
+            // //q.GetImages
+            // queryPromise6 = (productId) => {
+            //     return new Promise((resolve, reject) => {
+            //         dbQuery(`select idProduct, image from image where idProduct=${productId};`, (error, results) => {
+            //             if (error) {
+            //                 return reject(error);
+            //             }
+            //             // setTimeout(()=>resolve(results),1000);
+            //             return resolve(results);
+            //         })
+            //     })
+            // }
 
-        // //q.GetImages
-        // queryPromise6 = (productId) => {
-        //     return new Promise((resolve, reject) => {
-        //         dbQuery(`select idProduct, image from image where idProduct=${productId};`, (error, results) => {
-        //             if (error) {
-        //                 return reject(error);
-        //             }
-        //             // setTimeout(()=>resolve(results),1000);
-        //             return resolve(results);
-        //         })
-        //     })
-        // }
+            // try {
+            //     let addProduct = await queryPromise1();
+            //     let resultsProducts = await queryPromise2();
+            //     let addStocks = await queryPromise3(resultsProducts[0].id);
+            //     let addImages = await queryPromise4(resultsProducts[0].id);
+            //     let resultsStocks = await queryPromise5(resultsProducts[0].id);
+            //     let resultsImage = await queryPromise6(resultsProducts[0].id);
 
-        // try {
-        //     let addProduct = await queryPromise1();
-        //     let resultsProducts = await queryPromise2();
-        //     let addStocks = await queryPromise3(resultsProducts[0].id);
-        //     let addImages = await queryPromise4(resultsProducts[0].id);
-        //     let resultsStocks = await queryPromise5(resultsProducts[0].id);
-        //     let resultsImage = await queryPromise6(resultsProducts[0].id);
+            //     console.log(resultsImage)
 
-        //     console.log(resultsImage)
+            //     resultsProducts[0].stock = [...resultsStocks];
 
-        //     resultsProducts[0].stock = [...resultsStocks];
+            //     resultsProducts.forEach((valProd, idxProd) => {
+            //         valProd.images = [];
+            //         resultsImage.forEach((valImg, idxImg) => {
+            //             if (valProd.id == valImg.idProduct) {
+            //                 valProd.images.push(valImg.image);
+            //             }
+            //         });
+            //     });
 
-        //     resultsProducts.forEach((valProd, idxProd) => {
-        //         valProd.images = [];
-        //         resultsImage.forEach((valImg, idxImg) => {
-        //             if (valProd.id == valImg.idProduct) {
-        //                 valProd.images.push(valImg.image);
-        //             }
-        //         });
-        //     });
+            //     return res.status(200).send(resultsProducts[0]);
 
-        //     return res.status(200).send(resultsProducts[0]);
+            // } catch (error) {
+            //     return next(error);
+            // }
+        } else {
+            return res.status(401).send('You not authorize for this feature');
+        }
 
-        // } catch (error) {
-        //     return next(error);
-        // }
+
 
     },
     edit: (req, res, next) => {
