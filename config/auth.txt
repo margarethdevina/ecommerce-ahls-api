@@ -1,0 +1,13 @@
+Data yg didapat dr akun google:
+
+{
+    id: '117202662576387831813',
+  displayName: 'dummy developer',
+  name: { familyName: 'developer', givenName: 'dummy' },
+  emails: [ { value: 'dummydeveloper97@gmail.com', verified: true } ],
+  photos: [
+    {
+      value: 'https://lh3.googleusercontent.com/a/AATXAJwkyZU5TVOzVZdwpAFWPjhqj6S7LrShv7XAMUiC=s96-c'
+    }
+  ]
+}

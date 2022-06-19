@@ -5,9 +5,10 @@ module.exports = {
     hashPassword: (pass) => {
         //yg direturn adalah output enkripsi fungsi crypto
         //.createHmac yg umum dipake jg
-        //sha256 algoritmanya, yg umum dipake
-        //JCAHLS-01 menjadi kuncinya
+        //sha256 algoritmanya, yg umum dipake ==> gemboknya
+        //JCAHLS-01 menjadi kuncinya ==> kunci gemboknya
         //.update(argumen yg mau diencrypt)
+        //hex = model hexadesimal
         return Crypto.createHmac("sha256", "JCAHLS-01").update(pass).digest("hex");
     },
     //payload = data2 yg mau dijadikan token

@@ -5,15 +5,37 @@ const dotenv = require('dotenv'); // menyimpan value kedalam environment variabe
 const mongoose = require('mongoose'); //insert library mongoose
 const { mongoAccessURL } = require('./config/mongo');//panggil mongoAccessURL nya
 const bearerToken = require('express-bearer-token');
+const passport = require('passport');
+const session = require('express-session'); // untuk simpan info session dr google login
 dotenv.config(); //untuk aktifkan dotenv nya
 
-const PORT = process.env.PORT; // tadi simpan portnya dalam PORT jadi panggil pakai .PORT
+// tadi simpan portnya dalam PORT jadi panggil pakai .PORT
+const PORT = process.env.PORT; 
 
-app.use(bearerToken()); // untuk mengambil data token dari req.header
+app.use(session({
+    resave: false,
+    saveUninitialized: true,
+    secret: 'SECRET'
+}))
 
-app.use(express.json()); // untuk membaca data req.body di express.js
-app.use(express.static('public')); //untuk kasi akses untuk bisa akses langsung direktori public nya
-app.use(cors()); // cek rekaman untuk refresh
+// untuk mengambil data token dari req.header
+app.use(bearerToken()); 
+
+// untuk membaca data req.body di express.js
+app.use(express.json()); 
+
+//untuk kasi akses untuk bisa akses langsung direktori public nya
+app.use(express.static('public')); 
+
+// cek rekaman untuk refresh
+app.use(cors()); 
+
+// CONFIG PASSPORT ❗❗❗
+// krn di config passport tidak dilakukan export makannya perlu dirun disini
+require('./config/passport'); 
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // DB check connection
 const { dbConf } = require('./config/database');
@@ -25,7 +47,7 @@ dbConf.getConnection((error, connection) => {
 })
 
 // Mongo check connection ❗❗❗❗
-mongoose.connect(mongoAccessURL,()=>{
+mongoose.connect(mongoAccessURL, () => {
     console.log("Connect Mongo Success ✅");
 })
 
@@ -34,10 +56,11 @@ app.get('/', (req, res) => {
     res.status(200).send("<h1>JCAHLS Ecommerce API</h1>")
 })
 
-const { userRouter, bannerRouter, productsRouter } = require('./routers');
+const { userRouter, bannerRouter, productsRouter, authRouter } = require('./routers');
 app.use('/users', userRouter);
 app.use('/banner', bannerRouter);
 app.use('/products', productsRouter);
+app.use('/auth', authRouter);
 
 // Handling error
 // Middleware untuk urus error scr global
