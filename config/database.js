@@ -4,6 +4,10 @@ const util = require('util'); //libary next js untuk manage api, ubah asyn funct
 //dbconf ga punya promise then catch makannya butuh util untuk bisa async await dan try catch
 
 const dbConf = mysql.createPool({
+    connectionLimit: 1000,
+    connectTimeout: 60 * 60 * 1000,
+    acquireTimeout: 60 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -13,7 +17,7 @@ const dbConf = mysql.createPool({
 
 const dbQuery = util.promisify(dbConf.query).bind(dbConf);
 
-module.exports = {dbConf,dbQuery};
+module.exports = { dbConf, dbQuery };
 
 //port default bawaan platform lain: 3306 mysql, 270017 mongo, 2180 2108 proxy, 22 ssh, 443 https connection / protocol htps bisa dipake tapi perlu konfigurasi lanjutan, 8080, 60
 //port2 itu jangan dipakai untuk koneksi database localhost kita 
